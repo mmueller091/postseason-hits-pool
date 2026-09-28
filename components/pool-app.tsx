@@ -206,7 +206,7 @@ function App({ view }: { view: View }) {
   return (
     <>
       <header className="site-header">
-        <a className="brand" href="/">
+        <a className="brand" href="/standings">
           <span className="brand-mark">H</span>
           <span>
             Postseason <strong>Hits Pool</strong>
@@ -215,26 +215,14 @@ function App({ view }: { view: View }) {
         <span className="season-label">MLB · {pool.season}</span>
       </header>
       <nav className="site-nav" aria-label="Main navigation">
-        {[
-          ['draft', '/', 'Draft board', ListOrdered],
-          ['standings', '/standings', 'Standings', Trophy],
-        ].map(([id, href, label, Icon]: any) => (
-          <a
-            key={id}
-            href={href}
-            className={view === id ? 'active' : ''}
-            aria-current={view === id ? 'page' : undefined}
-          >
-            <Icon size={17} />
-            {label}
-          </a>
-        ))}
-        <div className="nav-person">
-          <Button variant="ghost" onClick={() => setIdentity(true)}>
-            <UserRound />
-            {selectedMember?.name ?? 'Select your name'}
-          </Button>
-        </div>
+        <a
+          href="/standings"
+          className={view === 'standings' ? 'active' : ''}
+          aria-current={view === 'standings' ? 'page' : undefined}
+        >
+          <Trophy size={17} />
+          Standings
+        </a>
       </nav>
       <main className="shell">
         <Heading pool={pool} view={view} />
@@ -984,7 +972,8 @@ function Standings({
   pending: boolean;
 }) {
   const rows = standings(pool),
-    top = rows[0]?.total ?? 0;
+    top = rows[0]?.total ?? 0,
+    eliminatedTeams = new Set(pool.eliminatedTeamIds ?? []);
   return (
     <>
       <div className="summary-grid">
@@ -1058,17 +1047,27 @@ function Standings({
                 </TableCell>
                 {['AL', 'NL', 'W'].map((slot) => {
                   const pick = row.picks.find((p) => p.slot === slot);
+                  const eliminated = pick
+                    ? eliminatedTeams.has(pick.player.teamId)
+                    : false;
                   return (
                     <TableCell key={slot}>
                       {pick ? (
-                        <div className="score-player">
+                        <div
+                          className={
+                            'score-player' + (eliminated ? ' eliminated' : '')
+                          }
+                        >
                           <strong>
                             {pool.scores[pick.player.id]?.total ??
                               (pool.scoresUpdatedAt ? '0' : '—')}
                           </strong>
                           <span>
                             {pick.player.name}
-                            <small>{pick.player.team}</small>
+                            <small>
+                              {pick.player.team}
+                              {eliminated ? ' · ELIMINATED' : ''}
+                            </small>
                           </span>
                         </div>
                       ) : (
@@ -1131,11 +1130,21 @@ function Standings({
                 .map((p) => (
                   <TableRow key={p.number}>
                     <TableCell>
-                      <div className="compact-player">
+                      <div
+                        className={
+                          'compact-player' +
+                          (eliminatedTeams.has(p.player.teamId)
+                            ? ' eliminated'
+                            : '')
+                        }
+                      >
                         <strong>{p.player.name}</strong>
                         <small>
                           {p.player.team} ·{' '}
                           {p.slot === 'W' ? 'Wildcard' : p.slot}
+                          {eliminatedTeams.has(p.player.teamId)
+                            ? ' · ELIMINATED'
+                            : ''}
                         </small>
                       </div>
                     </TableCell>
@@ -1156,7 +1165,7 @@ function Standings({
           <p className="table-note">
             WC: Wild Card · DS: Division Series · LCS: League Championship
             Series · WS: World Series. Hits remain counted after a team is
-            eliminated.
+            eliminated. Bright red players are eliminated.
           </p>
         </section>
       )}
