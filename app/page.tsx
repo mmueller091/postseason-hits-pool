@@ -1,4 +1,5 @@
-import PoolApp from '@/components/pool-app';
+import { redirect } from 'next/navigation';
+
 export default function Page() {
-  return <PoolApp view="draft" />;
+  redirect('/standings');
 }

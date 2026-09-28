@@ -809,6 +809,13 @@ label input {
   font-size: 10px;
   margin-top: 4px;
 }
+.score-player.eliminated > strong,
+.score-player.eliminated span,
+.score-player.eliminated small,
+.compact-player.eliminated strong,
+.compact-player.eliminated small {
+  color: #ff1f1f;
+}
 .total-hits {
   font-family: Georgia, serif;
   font-size: 32px;
