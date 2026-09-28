@@ -48,6 +48,7 @@ export type Pool = {
   players: Player[];
   picks: Pick[];
   scores: Record<string, Score>;
+  eliminatedTeamIds: number[];
   statsUpdatedAt: string | null;
   scoresUpdatedAt: string | null;
   scoreError: string | null;
@@ -65,6 +66,7 @@ export function emptyPool(): Pool {
     players: [],
     picks: [],
     scores: {},
+    eliminatedTeamIds: [],
     statsUpdatedAt: null,
     scoresUpdatedAt: null,
     scoreError: null,

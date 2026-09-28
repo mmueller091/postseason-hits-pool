@@ -238,3 +238,39 @@ export async function postseasonScores(
     score.total = score.F + score.D + score.L + score.W;
   return scores;
 }
+
+export async function eliminatedPostseasonTeams(
+  season: number,
+): Promise<number[]> {
+  const data = await get(
+    '/schedule?sportId=1&season=' +
+      season +
+      '&gameTypes=F,D,L,W&hydrate=seriesStatus',
+  );
+  assert(
+    Array.isArray(data.dates),
+    'MLB postseason schedule data is unavailable.',
+    502,
+  );
+  type ScheduleGame = {
+    status?: { abstractGameState?: string };
+    seriesStatus?: {
+      isOver?: boolean;
+      losingTeam?: { id?: number };
+    };
+  };
+  const dates = data.dates as { games?: ScheduleGame[] }[];
+  return [
+    ...new Set<number>(
+      dates
+        .flatMap((date) => date.games ?? [])
+        .filter(
+          (game) =>
+            game.status?.abstractGameState === 'Final' &&
+            game.seriesStatus?.isOver === true &&
+            Number.isInteger(game.seriesStatus?.losingTeam?.id),
+        )
+        .map((game) => Number(game.seriesStatus?.losingTeam?.id)),
+    ),
+  ];
+}
