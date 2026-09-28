@@ -731,7 +731,7 @@ label input {
 }
 .summary-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1.15fr);
   margin-bottom: 26px;
   background: #173f33;
   color: #f7f8f1;
@@ -757,6 +757,13 @@ label input {
   font-family: Arial, sans-serif;
   font-size: 14px;
   color: #a7bba4;
+}
+.summary-grid .leader-names {
+  margin: 10px 0 0;
+  max-width: 560px;
+  color: #d9e4d1;
+  font-size: 13px;
+  line-height: 1.45;
 }
 .sync-summary {
   position: relative;
@@ -1080,10 +1087,6 @@ label input {
   .summary-grid {
     grid-template-columns: 1fr 1fr;
   }
-  .summary-grid > div:last-child {
-    grid-column: 1/-1;
-    border-top: 1px solid #385c48;
-  }
   .sync-summary [data-slot='button'] {
     position: absolute;
     right: 25px;
@@ -1097,6 +1100,15 @@ label input {
   }
 }
 @media (max-width: 600px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .summary-grid > div {
+    border-right: 0;
+  }
+  .summary-grid > div:last-child {
+    border-top: 1px solid #385c48;
+  }
   .turn-strip {
     padding: 17px 15px;
     gap: 10px;
