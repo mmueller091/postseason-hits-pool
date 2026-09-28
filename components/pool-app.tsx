@@ -973,6 +973,7 @@ function Standings({
 }) {
   const rows = standings(pool),
     top = rows[0]?.total ?? 0,
+    leaders = rows.filter((row) => row.total === top),
     eliminatedTeams = new Set(pool.eliminatedTeamIds ?? []);
   return (
     <>
@@ -983,13 +984,12 @@ function Standings({
             {pool.scoresUpdatedAt ? top : '—'}
             <small> hits</small>
           </strong>
-        </div>
-        <div>
-          <p className="eyebrow">Players drafted</p>
-          <strong>
-            {pool.picks.length}
-            <small> / {pool.members.length * 3}</small>
-          </strong>
+          {pool.scoresUpdatedAt && leaders.length > 0 && (
+            <p className="leader-names">
+              {leaders.map((row) => row.member.name).join(', ')}
+              {leaders.length > 1 ? ' · tied for first' : ' · first place'}
+            </p>
+          )}
         </div>
         <div className="sync-summary">
           <p className="eyebrow">MLB postseason stats</p>
