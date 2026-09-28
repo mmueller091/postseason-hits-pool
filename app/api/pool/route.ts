@@ -16,6 +16,7 @@ import {
 } from '@/lib/domain';
 import {
   fieldCandidates,
+  eliminatedPostseasonTeams,
   loadPlayers,
   postseasonScores,
   teamsFor,
@@ -72,9 +73,13 @@ async function refreshScores() {
   const season = pool.season;
   const ids = pool.picks.map((p) => p.player.id);
   let scores: Pool['scores'] | null = null,
+    eliminatedTeamIds: number[] | null = null,
     error: string | null = null;
   try {
-    scores = await postseasonScores(season, ids);
+    [scores, eliminatedTeamIds] = await Promise.all([
+      postseasonScores(season, ids),
+      eliminatedPostseasonTeams(season),
+    ]);
   } catch (e) {
     error =
       e instanceof Error ? e.message : 'MLB statistics could not be refreshed.';
@@ -84,6 +89,7 @@ async function refreshScores() {
     if (current.pool.season !== season) return;
     if (scores) {
       current.pool.scores = { ...current.pool.scores, ...scores };
+      current.pool.eliminatedTeamIds = eliminatedTeamIds ?? [];
       current.pool.scoresUpdatedAt = new Date().toISOString();
     }
     current.pool.scoreError = error;
@@ -293,8 +299,9 @@ export async function POST(request: Request) {
         pool.players = [];
         pool.fieldConfirmed = false;
         pool.statsUpdatedAt = null;
-        pool.scores = {};
-        pool.scoresUpdatedAt = null;
+      pool.scores = {};
+      pool.eliminatedTeamIds = [];
+      pool.scoresUpdatedAt = null;
         pool.scoreError = null;
       }
       logEvent(pool, 'Commissioner saved draft order and pool settings.');
@@ -322,6 +329,7 @@ export async function POST(request: Request) {
       pool.teams = selected;
       pool.fieldConfirmed = true;
       pool.players = [];
+      pool.eliminatedTeamIds = [];
       pool.statsUpdatedAt = null;
       logEvent(pool, 'Commissioner confirmed the playoff field.');
       await savePool(pool, revision);
