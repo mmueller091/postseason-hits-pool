@@ -1042,7 +1042,12 @@ function Standings({
                 <TableCell>
                   <strong>{row.member.name}</strong>
                   <small className="block muted">
-                    {row.picks.length} / 3 players
+                    {
+                      row.picks.filter(
+                        (pick) => !eliminatedTeams.has(pick.player.teamId),
+                      ).length
+                    }{' '}
+                    / 3 players active
                   </small>
                 </TableCell>
                 {['AL', 'NL', 'W'].map((slot) => {
