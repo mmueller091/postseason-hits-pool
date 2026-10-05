@@ -1019,27 +1019,94 @@ function Standings({
             Updates every minute while this page is open
           </span>
         </div>
-        <Table className="standings-table">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Rank</TableHead>
-              <TableHead>Participant</TableHead>
-              <TableHead>AL</TableHead>
-              <TableHead>NL</TableHead>
-              <TableHead>Wildcard</TableHead>
-              <TableHead>Total H</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow
-                className={row.rank === 1 && row.total > 0 ? 'leader' : ''}
-                key={row.member.id}
-              >
-                <TableCell>
-                  <span className="rank">{row.rank}</span>
-                </TableCell>
-                <TableCell>
+        <div className="standings-desktop">
+          <Table className="standings-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Rank</TableHead>
+                <TableHead>Participant</TableHead>
+                <TableHead>AL</TableHead>
+                <TableHead>NL</TableHead>
+                <TableHead>Wildcard</TableHead>
+                <TableHead>Total H</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow
+                  className={row.rank === 1 && row.total > 0 ? 'leader' : ''}
+                  key={row.member.id}
+                >
+                  <TableCell>
+                    <span className="rank">{row.rank}</span>
+                  </TableCell>
+                  <TableCell>
+                    <strong>{row.member.name}</strong>
+                    <small className="block muted">
+                      {
+                        row.picks.filter(
+                          (pick) => !eliminatedTeams.has(pick.player.teamId),
+                        ).length
+                      }{' '}
+                      / 3 players active
+                    </small>
+                  </TableCell>
+                  {['AL', 'NL', 'W'].map((slot) => {
+                    const pick = row.picks.find((p) => p.slot === slot);
+                    const eliminated = pick
+                      ? eliminatedTeams.has(pick.player.teamId)
+                      : false;
+                    return (
+                      <TableCell key={slot}>
+                        {pick ? (
+                          <div
+                            className={
+                              'score-player' +
+                              (eliminated ? ' eliminated' : '')
+                            }
+                          >
+                            <strong>
+                              {pool.scores[pick.player.id]?.total ??
+                                (pool.scoresUpdatedAt ? '0' : '—')}
+                            </strong>
+                            <span>
+                              {pick.player.name}
+                              <small>
+                                {pick.player.team}
+                                {eliminated ? ' · ELIMINATED' : ''}
+                              </small>
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="muted">Not drafted</span>
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell>
+                    <strong className="total-hits">
+                      {pool.scoresUpdatedAt ? row.total : '—'}
+                    </strong>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="standings-mobile" aria-label="Pool standings">
+          {rows.map((row) => (
+            <article
+              className={
+                'standings-card' +
+                (row.rank === 1 && row.total > 0 ? ' leader' : '')
+              }
+              key={row.member.id}
+            >
+              <div className="standings-card-heading">
+                <span className="rank" aria-label={`Rank ${row.rank}`}>
+                  {row.rank}
+                </span>
+                <div>
                   <strong>{row.member.name}</strong>
                   <small className="block muted">
                     {
@@ -1049,18 +1116,28 @@ function Standings({
                     }{' '}
                     / 3 players active
                   </small>
-                </TableCell>
-                {['AL', 'NL', 'W'].map((slot) => {
+                </div>
+                <div className="mobile-total">
+                  <small>Total hits</small>
+                  <strong>{pool.scoresUpdatedAt ? row.total : '—'}</strong>
+                </div>
+              </div>
+              <div className="mobile-picks">
+                {(['AL', 'NL', 'W'] as const).map((slot) => {
                   const pick = row.picks.find((p) => p.slot === slot);
                   const eliminated = pick
                     ? eliminatedTeams.has(pick.player.teamId)
                     : false;
                   return (
-                    <TableCell key={slot}>
+                    <div className="mobile-pick" key={slot}>
+                      <span className="mobile-slot">
+                        {slot === 'W' ? 'WC' : slot}
+                      </span>
                       {pick ? (
                         <div
                           className={
-                            'score-player' + (eliminated ? ' eliminated' : '')
+                            'score-player' +
+                            (eliminated ? ' eliminated' : '')
                           }
                         >
                           <strong>
@@ -1078,18 +1155,13 @@ function Standings({
                       ) : (
                         <span className="muted">Not drafted</span>
                       )}
-                    </TableCell>
+                    </div>
                   );
                 })}
-                <TableCell>
-                  <strong className="total-hits">
-                    {pool.scoresUpdatedAt ? row.total : '—'}
-                  </strong>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </div>
+            </article>
+          ))}
+        </div>
         {!rows.length && (
           <div className="empty-state">
             <Trophy size={30} />
